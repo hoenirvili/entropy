@@ -1,7 +1,7 @@
-#include <stdint.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,11 +11,9 @@
 
 static inline void ex(const char *msg, bool t)
 {
-	if (t) {
-		fprintf(stderr, KRED "[!] "RESET"%s:%s\n", msg, strerror(errno));
-	} else {
-		fprintf(stderr, KRED "[!] "RESET"%s\n", msg);
-	}
+	(t) ? fprintf(stderr, KRED "[!] " RESET "%s:%s\n", msg, strerror(errno))
+		: fprintf(stderr, KRED "[!] " RESET "%s\n", msg);
+
 	exit(EXIT_SUCCESS);
 }
 
@@ -106,9 +104,7 @@ static double entropy(double *p, uint64_t n)
 {
 	double entropy = 0;
 	for (uint64_t i = 0; i < n; i++) {
-		if (p[i] == 0.0) {
-			entropy -= 0;
-		}
+		if (p[i] == 0.0) continue;
 		entropy -= (p[i] * log2l(p[i]));
 	}
 	return entropy;
@@ -132,14 +128,14 @@ int main(int argc, char **argv)
 	parse_file(argv[1], &p_val, &n);
 
 	begin = clock();
-	e = entropy(p_val, n);
-	end = clock();
+	e	 = entropy(p_val, n);
+	end   = clock();
 
 	free(p_val);
 
-	time_spent = (double)(end-begin)/CLOCKS_PER_SEC;
+	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	printf("time: %F\n", time_spent);
-	if (e<= 0)
+	if (e <= 0)
 		WA("Entropy is equal less than 0");
 
 	printf("entropy %F bits of information\n", e);
