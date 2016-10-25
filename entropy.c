@@ -1,5 +1,3 @@
-// Copyright 2016 machine learning class
-
 #include <errno.h>
 #include <math.h>
 #include <stdbool.h>
@@ -269,7 +267,7 @@ int main(int argc, char **argv)
 		printf("H(Y) = %F\n", y_entropy);
 
 		double conditional_x[n], conditional_y[m];
-		compute_conditional_distributions_p(n,m, conditional_x, conditional_y, marginal_x, marginal_y, pma_val);	
+		compute_conditional_distributions_p(n,m, conditional_x, conditional_y, marginal_x, marginal_y, pma_val); // p(x|y) = f(x,y)/ f(y) and p(y|x) = f(x,y)/f(x)
 		
 		printf("f(Y|X=x) = ");
 		for(uint64_t i=0; i<n; i++) 
