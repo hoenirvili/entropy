@@ -166,6 +166,47 @@ static void compute_marginal_distributions_p(uint64_t n, uint64_t m, double marg
 	}
 }
 
+static void verify_marginal_distribution(uint64_t n, uint64_t m, double marginal_x[n], double marginal_y[m])
+{
+	double sum = 0;
+	for (uint64_t i = 0; i<n; i++) {
+		sum += marginal_x[i];
+	}
+
+	if (sum != 1)
+		EX("Pmf of marginal distribution of X must be 1");
+
+	sum = 0;
+
+	for (uint64_t i = 0; i<m; i++) {
+		sum += marginal_y[i];
+	}
+
+	if (sum != 1)
+		EX("Pmf of marginal distribution of Y must be 1");
+}
+
+static void compute_conditional_distributions_p(uint64_t n, uint64_t m, 
+		double conditional_x[n], double conditional_y[m], 
+		double marginal_x[n], double marginal_y[m], 
+		double p[n][m]) {
+	
+	uint64_t i, j;
+
+
+	for (j=0; j<m; j++) {
+		for(i=0; i<n; i++) {
+			conditional_x[i] = p[i][j] / marginal_x[j];
+		}
+	}
+
+	for (i=0; i<n; i++) {
+		for(j=0; j<n; j++) {
+			conditional_y[i] = p[i][j] / marginal_y[i];
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	uint64_t n = 0, m = 0;
@@ -221,10 +262,23 @@ int main(int argc, char **argv)
 
 		// compute marginal distributions
 		compute_marginal_distributions_p(n, m, marginal_x, marginal_y, pma_val);
+		verify_marginal_distribution(n, m, marginal_x, marginal_y); // verify if the marginal distribution is correct
 		double x_entropy = entropy(marginal_x, n); // result of H(x)
 		double y_entropy = entropy(marginal_y, m); // result of H(y)
 		printf("H(X) =  %F\n", x_entropy);
 		printf("H(Y) = %F\n", y_entropy);
+
+		double conditional_x[n], conditional_y[m];
+		compute_conditional_distributions_p(n,m, conditional_x, conditional_y, marginal_x, marginal_y, pma_val);	
+		
+		printf("f(Y|X=x) = ");
+		for(uint64_t i=0; i<n; i++) 
+			printf("%f ", conditional_x[i]);
+		printf("\n");	
+		printf("f(X|Y=y) = ");
+		for (uint64_t i=0; i<n; i++) 
+			printf("%f ",conditional_y[i]);
+		printf("\n");
 
 		end   = clock(); // end recording time
 		time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
