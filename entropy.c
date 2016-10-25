@@ -110,6 +110,17 @@ static double entropy(double *p, uint64_t n)
 	return entropy;
 }
 
+static void verify_probability(double *p, uint64_t n)
+{
+	double sum = 0;
+	for(uint64_t i = 0; i<n ; i++) {
+		sum += p[i];
+	}
+
+	if (sum != 1.0)
+		WA("The sum of all probabilities is not 1");
+}
+
 static clock_t begin, end;
 static double time_spent;
 
@@ -126,6 +137,7 @@ int main(int argc, char **argv)
 	}
 
 	parse_file(argv[1], &p_val, &n);
+	verify_probability(p_val, n);
 
 	begin = clock();
 	e	 = entropy(p_val, n);
