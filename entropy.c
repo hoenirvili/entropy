@@ -1,3 +1,5 @@
+// Copyright 2016 machine learning class
+
 #include <errno.h>
 #include <math.h>
 #include <stdbool.h>
@@ -14,7 +16,7 @@ static inline void ex(const char *msg, bool t)
 	(t) ? fprintf(stderr, KRED "[!] " RESET "%s:%s\n", msg, strerror(errno))
 		: fprintf(stderr, KRED "[!] " RESET "%s\n", msg);
 
-	exit(EXIT_SUCCESS);
+	exit(EXIT_FAILURE);
 }
 
 #define EX(message) ex((message), true)
@@ -92,7 +94,7 @@ static void parse_file(const char *_name, double **_cnt, uint64_t *_n)
 
 	uint64_t i = 0;
 	while (fgets(buff, BUFF_MAX, fp) != NULL) {
-		buff[strlen(buff) - 1] = '\0';					  // just throw away that \n nonsens
+		buff[strlen(buff) - 1] = '\0';
 		h[i]				   = convert_p(buff);
 		i++;
 	}
@@ -113,42 +115,119 @@ static double entropy(double *p, uint64_t n)
 static void verify_probability(double *p, uint64_t n)
 {
 	double sum = 0;
-	for(uint64_t i = 0; i<n ; i++) {
+	for (uint64_t i = 0; i < n; i++) {
 		sum += p[i];
 	}
 
 	if (sum != 1.0)
-		WA("The sum of all probabilities is not 1");
+		EX("The sum of all probabilities is not 1");
 }
 
 static clock_t begin, end;
 static double time_spent;
 
+static void init_pma(uint64_t n, uint64_t m, double p[n][m])
+{
+	for (uint64_t i = 0; i < n; i++) {
+		for (uint64_t j = 0; j < m; j++) {
+			printf("m[%lu][%lu] = ", i, j);
+			scanf("%lf", &p[i][j]);
+		}
+	}
+}
+
+static void check_ma(uint64_t n, uint64_t m, double p[n][m])
+{
+	double sum = 0;
+
+	for (uint64_t i = 0; i < n; i++)
+		for (uint64_t j = 0; j < m; j++)
+			sum += p[i][j];
+
+	if (sum != 1)
+		EX("The sum of ma probabilities is not 1");
+}
+
+static void compute_marginal_distributions_p(uint64_t n, uint64_t m, double marginal_x[n], double marginal_y[m], double p[n][m])
+{
+	uint64_t i = 0;
+	uint64_t j = 0;
+
+	// compute all P(X=x) where little x is all values of X
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < m; j++)
+			marginal_x[i] += p[i][j];
+	}
+
+	// compute all P(Y=y) where lilttle y is all values	of Y
+	for (j = 0; j < m; j++) {
+		for (i = 0; i < n; i++)
+			marginal_y[j] += p[i][j];
+	}
+}
+
 int main(int argc, char **argv)
 {
-	double *p_val = NULL;
-	uint64_t n = 0;
+	uint64_t n = 0, m = 0;
 	double e = 0.0;
 
 	if (argc < 2) {
 		fprintf(stdout, KRED "[*] " RESET " To few argumnets\n"
-							 "Usage: ./entropy probability.txt\n");
+							 "Usage: ./entropy -in probability.txt\n");
 		exit(EXIT_FAILURE);
 	}
 
-	parse_file(argv[1], &p_val, &n);
-	verify_probability(p_val, n);
+	// check if we feed with a file
+	// and compute just the entropy
+	if (strcmp(argv[1], "-in") == 0) {
+		double *p_val = NULL;
+		parse_file(argv[2], &p_val, &n);
+		verify_probability(p_val, n);
 
-	begin = clock();
-	e	 = entropy(p_val, n);
-	end   = clock();
+		begin = clock();
+		e	 = entropy(p_val, n);
+		end   = clock();
 
-	free(p_val);
+		free(p_val);
 
-	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printf("time: %F\n", time_spent);
-	if (e <= 0)
-		WA("Entropy is equal less than 0");
+		time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+		printf("time: %F\n", time_spent);
+		if (e <= 0)
+			WA("H(x) is equal less than 0");
 
-	printf("entropy %F bits of information\n", e);
+		printf("H(x) %F bits of information\n", e);
+	}
+
+	// manually chose the insert the matrix from stdin
+	if (strcmp(argv[1], "-ma") == 0) {
+		// input from keyboard
+		fprintf(stdout, "N = ");
+		scanf("%lu", &n);
+		fprintf(stdout, "M = ");
+		scanf("%lu", &m);
+		
+		begin = clock(); // start recording time
+
+		// read all p's form keybaord and check them
+		double pma_val[n][m];
+		init_pma(n, m, pma_val);
+		check_ma(n, m, pma_val);
+
+		// compute the col, line max p
+		double marginal_x[n];		// result of P(X=x) marginal distribution value
+		double marginal_y[m];		// result of P(Y=y) marginal distribution values
+		memset(marginal_x, 0, sizeof(marginal_x));
+		memset(marginal_y, 0, sizeof(marginal_y));
+
+		// compute marginal distributions
+		compute_marginal_distributions_p(n, m, marginal_x, marginal_y, pma_val);
+		double x_entropy = entropy(marginal_x, n); // result of H(x)
+		double y_entropy = entropy(marginal_y, m); // result of H(y)
+		printf("H(X) =  %F\n", x_entropy);
+		printf("H(Y) = %F\n", y_entropy);
+
+		end   = clock(); // end recording time
+		time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+		printf("time: %F\n", time_spent);
+	}
 }
