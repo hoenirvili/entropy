@@ -20,6 +20,7 @@ static inline void ex(const char *msg, bool t)
 #define EX(message) ex((message), true)
 #define WA(message) ex((message), false)
 
+// check if the arg string contains only digits and skip the "." char
 static bool filter_number(const char *arg)
 {
 	if (!arg) {
@@ -37,6 +38,7 @@ static bool filter_number(const char *arg)
 	return true;
 }
 
+// convert from string into a double a given number
 static double convert_p(char *a)
 {
 	char n[BUFF_MAX + BUFF_MAX];
@@ -56,6 +58,7 @@ static double convert_p(char *a)
 	return p;
 }
 
+// parse the file and construct the array of probabilities
 static void parse_file(const char *_name, double **_cnt, uint64_t *_n)
 {
 	if (!_name)
@@ -100,6 +103,7 @@ static void parse_file(const char *_name, double **_cnt, uint64_t *_n)
 	*_cnt = h;
 }
 
+// compute the entropy of a given *p array of probabilities
 static double entropy(double *p, uint64_t n)
 {
 	double entropy = 0;
@@ -110,6 +114,7 @@ static double entropy(double *p, uint64_t n)
 	return entropy;
 }
 
+// verify if the sum of all probabilities in our *p is 1
 static void verify_probability(double *p, uint64_t n)
 {
 	double sum = 0;
@@ -124,6 +129,7 @@ static void verify_probability(double *p, uint64_t n)
 static clock_t begin, end;
 static double time_spent;
 
+// read every row in our table
 static void init_pma(uint64_t n, uint64_t m, double p[n][m])
 {
 	for (uint64_t i = 0; i < n; i++) {
@@ -134,6 +140,7 @@ static void init_pma(uint64_t n, uint64_t m, double p[n][m])
 	}
 }
 
+// if the sumn of all rows in our table is 1 that means the data is valid
 static void check_ma(uint64_t n, uint64_t m, double p[n][m])
 {
 	double sum = 0;
@@ -146,24 +153,32 @@ static void check_ma(uint64_t n, uint64_t m, double p[n][m])
 		EX("The sum of ma probabilities is not 1");
 }
 
+// if we sum up each line rows we will know the marginal distribution for that given line
+// if we sum up each column rows we will know the marginal distribution for the given column
 static void compute_marginal_distributions_p(uint64_t n, uint64_t m, double marginal_x[n], double marginal_y[m], double p[n][m])
 {
 	uint64_t i = 0;
 	uint64_t j = 0;
 
 	// compute all P(X=x) where little x is all values of X
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++) { 
+		// after the for loop is done we will know 
+		// the marginal distribution for that given line
 		for (j = 0; j < m; j++)
 			marginal_x[i] += p[i][j];
 	}
 
 	// compute all P(Y=y) where lilttle y is all values	of Y
 	for (j = 0; j < m; j++) {
+		// after the for loop is done we will know 
+		// the marginal distribution for that given column
 		for (i = 0; i < n; i++)
 			marginal_y[j] += p[i][j];
 	}
 }
 
+// verify if the sum of marginal distribution of lines are 1
+// verify if the sum of marginal distribution of columns are 1
 static void verify_marginal_distribution(uint64_t n, uint64_t m, double marginal_x[n], double marginal_y[m])
 {
 	double sum = 0;
@@ -184,6 +199,7 @@ static void verify_marginal_distribution(uint64_t n, uint64_t m, double marginal
 		EX("Pmf of marginal distribution of Y must be 1");
 }
 
+// compute the conditional entropy given every distribution in our table
 static void compute_conditional_distributions_p(uint64_t n, uint64_t m, 
 		double conditional_x[n], double conditional_y[m], 
 		double marginal_x[n], double marginal_y[m], 
@@ -191,13 +207,19 @@ static void compute_conditional_distributions_p(uint64_t n, uint64_t m,
 	
 	uint64_t i, j;
 
-
+	
+	// for a given fixed column in our tables 
+	// we will dive our row p[i][j] by our marginal distribution of that given column 
+	// in our case marginal_x[j]
 	for (j=0; j<m; j++) {
 		for(i=0; i<n; i++) {
 			conditional_x[i] = p[i][j] / marginal_x[j];
 		}
 	}
 
+	// for a given line in our table
+	// we will divide our row p[i][j] by our marginal distribution of that given row
+	// in our case marginal_y[i]
 	for (i=0; i<n; i++) {
 		for(j=0; j<n; j++) {
 			conditional_y[i] = p[i][j] / marginal_y[i];
@@ -263,7 +285,7 @@ int main(int argc, char **argv)
 		verify_marginal_distribution(n, m, marginal_x, marginal_y); // verify if the marginal distribution is correct
 		double x_entropy = entropy(marginal_x, n); // result of H(x)
 		double y_entropy = entropy(marginal_y, m); // result of H(y)
-		printf("H(X) =  %F\n", x_entropy);
+		printf("H(X) = %F\n", x_entropy);
 		printf("H(Y) = %F\n", y_entropy);
 
 		double conditional_x[n], conditional_y[m];
