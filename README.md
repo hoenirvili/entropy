@@ -4,21 +4,23 @@
 
 
 ```bash
-☁  entropy [master] ⚡ ./entropy -in file.txt 
-time: 0.000017
-H(x) 0.721928 bits of information
-☁  entropy [master] ⚡ ./entropy -ma
-N = 3
-M = 2
-m[0][0] = 0.25
-m[0][1] = 0.25
-m[1][0] = 0.25
-m[1][1] = 0 
-m[2][0] = 0
-m[2][1] = 0.25
-H(X) = 1.500000
-H(Y) = 1.000000
-f(Y|X=x) = 1.000000 0.000000 1.000000 
-f(X|Y=y) = 0.500000 0.000000 1.666667 
-time: 0.000528
+☁  entropy [master] ⚡ ./entropy 
+numbers of instances = 14
+number of nodes = 4
+number of atributes for every node = 2
+
+add every atirbute in the node
+Node 0 , atribute 0 = 9
+Node 0 , atribute 1 = 5
+Node 1 , atribute 0 = 6
+Node 1 , atribute 1 = 3
+Node 2 , atribute 0 = 4
+Node 2 , atribute 1 = 0
+Node 3 , atribute 0 = 2
+Node 3 , atribute 1 = 3
+Entropy of this node 0 is H[x] = 0.940286
+Entropy of this node 1 is H[x] = 0.918296
+Entropy of this node 2 is H[x] = 0.000000
+Entropy of this node 3 is H[x] = 0.970951
+Information gain for this entry IG(x) = 0.003185
 ```
