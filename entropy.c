@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-// compute the entropy of a given p array of node atributes
+// compute the entropy of a given p array of node attribute
 static double entropy(double *p, uint64_t n)
 {
 	double sum = 0;
@@ -35,14 +35,14 @@ int main(void)
 	scanf("%lu", &n_instances);
 	fprintf(stdout, "number of nodes = ");
 	scanf("%lu", &n_nodes);
-	fprintf(stdout, "number of atributes for every node = ");
+	fprintf(stdout, "number of attribute for every node = ");
 	scanf("%lu", &n_node_atributes);
 	
 	double container[n_nodes][n_node_atributes];
-	fprintf(stdout, "\nadd every atirbute in the node\n");
+	fprintf(stdout, "\nadd every attribute in the node\n");
 	for (size_t i =0; i<n_nodes; i++) {
 		for(size_t j=0; j<n_node_atributes; j++) {
-			printf("Node %lu , atribute %lu = ", i,j);
+			printf("Node %lu , attribute %lu = ", i,j);
 			scanf("%lf", &container[i][j]);
 		}
 	}
